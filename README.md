@@ -1,2 +1,2 @@
-# algorithms_learning
+# algorithms learning
 Algorithms learning code
