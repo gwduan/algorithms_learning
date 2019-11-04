@@ -5,8 +5,26 @@ import (
 )
 
 func TestNewArrayStack(t *testing.T) {
-	var s Stack
-	s = NewArrayStack(2)
+	s := NewArrayStack(2)
+	newStackTest(s, t)
+}
+
+func TestArrayStackPushOne(t *testing.T) {
+	s := NewArrayStack(2)
+	pushOneTest(s, t)
+}
+
+func TestArrayStackPushTwo(t *testing.T) {
+	s := NewArrayStack(2)
+	pushTwoTest(s, t)
+}
+
+func TestArrayStackPushThree(t *testing.T) {
+	s := NewArrayStack(2)
+	pushThreeTest(s, t)
+}
+
+func newStackTest(s Stack, t *testing.T) {
 	if got := s.Size(); got != 0 {
 		t.Errorf("Size() == %v, want %v", got, 0)
 	}
@@ -21,9 +39,7 @@ func TestNewArrayStack(t *testing.T) {
 	}
 }
 
-func TestPushOne(t *testing.T) {
-	var s Stack
-	s = NewArrayStack(2)
+func pushOneTest(s Stack, t *testing.T) {
 	if got := s.Push(1); got != 1 {
 		t.Errorf("Push(1) == %v, want %v", got, 1)
 	}
@@ -54,9 +70,7 @@ func TestPushOne(t *testing.T) {
 	}
 }
 
-func TestPushTwo(t *testing.T) {
-	var s Stack
-	s = NewArrayStack(2)
+func pushTwoTest(s Stack, t *testing.T) {
 	if got := s.Push(1); got != 1 {
 		t.Errorf("Push(1) == %v, want %v", got, 1)
 	}
@@ -103,9 +117,7 @@ func TestPushTwo(t *testing.T) {
 	}
 }
 
-func TestPushThree(t *testing.T) {
-	var s Stack
-	s = NewArrayStack(2)
+func pushThreeTest(s Stack, t *testing.T) {
 	if got := s.Push(1); got != 1 {
 		t.Errorf("Push(1) == %v, want %v", got, 1)
 	}
