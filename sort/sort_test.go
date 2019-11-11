@@ -2,23 +2,37 @@ package sort
 
 import "testing"
 
+type sortFunc func([]int, int)
+
 func TestBubbleSort(t *testing.T) {
+	sortFuncTest(BubbleSort, t)
+}
+
+func TestInsertionSort(t *testing.T) {
+	sortFuncTest(InsertionSort, t)
+}
+
+func TestSelectionSort(t *testing.T) {
+	sortFuncTest(SelectionSort, t)
+}
+
+func sortFuncTest(sf sortFunc, t *testing.T) {
 	want := []int{1, 2, 3, 4, 5, 7}
 
 	data1 := []int{2, 3, 5, 1, 7, 4}
-	BubbleSort(data1, len(data1))
+	sf(data1, len(data1))
 	if !sorted(data1, len(data1)) {
 		t.Errorf("got %v, want %v", data1, want)
 	}
 
 	data2 := []int{1, 2, 3, 4, 5, 7}
-	BubbleSort(data2, len(data2))
+	sf(data2, len(data2))
 	if !sorted(data2, len(data2)) {
 		t.Errorf("got %v, want %v", data2, want)
 	}
 
 	data3 := []int{7, 5, 4, 3, 2, 1}
-	BubbleSort(data3, len(data3))
+	sf(data3, len(data3))
 	if !sorted(data3, len(data3)) {
 		t.Errorf("got %v, want %v", data3, want)
 	}
