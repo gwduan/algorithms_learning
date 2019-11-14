@@ -20,6 +20,10 @@ func TestMergeSort(t *testing.T) {
 	sortFuncTest(MergeSort, t)
 }
 
+func TestQuickSort(t *testing.T) {
+	sortFuncTest(QuickSort, t)
+}
+
 func sortFuncTest(sf sortFunc, t *testing.T) {
 	want := []int{1, 2, 3, 4, 5, 7}
 

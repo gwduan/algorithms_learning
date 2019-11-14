@@ -1,17 +1,17 @@
 package sort
 
 func MergeSort(data []int, num int) {
-	sort(data, 0, num-1)
+	mergeSort(data, 0, num-1)
 }
 
-func sort(data []int, low int, high int) {
+func mergeSort(data []int, low int, high int) {
 	if low >= high {
 		return
 	}
 
 	mid := (low + high) / 2
-	sort(data, low, mid)
-	sort(data, mid+1, high)
+	mergeSort(data, low, mid)
+	mergeSort(data, mid+1, high)
 
 	merge(data, low, mid, high)
 }
