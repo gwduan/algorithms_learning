@@ -26,6 +26,10 @@ func NewBinarySearchTree() *BinarySearchTree {
 	return &BinarySearchTree{}
 }
 
+func (t *BinarySearchTree) Length() int {
+	return t.length
+}
+
 func (t *BinarySearchTree) Find(value int) (*element, error) {
 	for p := t.root; p != nil; {
 		switch {
@@ -70,4 +74,58 @@ func (t *BinarySearchTree) Insert(value int) error {
 			return ErrDuplicate
 		}
 	}
+}
+
+func (t *BinarySearchTree) Delete(value int) error {
+	if t.root == nil {
+		return ErrNotFound
+	}
+
+	p := t.root
+	parent := t.root
+	replace := t.root
+	for p != nil {
+		if value == p.value {
+			break
+		} else if value < p.value {
+			parent = p
+			p = p.left
+		} else {
+			parent = p
+			p = p.right
+		}
+	}
+
+	if p == nil {
+		return ErrNotFound
+	}
+
+	if p.left == nil {
+		replace = p.right
+	} else if p.right == nil {
+		replace = p.left
+	} else {
+		min := p.right
+		minParent := p
+		for min.left != nil {
+			minParent = min
+			min = min.left
+		}
+		p.value = min.value
+		parent = minParent
+		p = min
+		replace = p.right
+	}
+
+	if p == parent.left {
+		parent.left = replace
+	} else if p == parent.right {
+		parent.right = replace
+	} else {
+		t.root = replace
+	}
+
+	t.length--
+
+	return nil
 }
