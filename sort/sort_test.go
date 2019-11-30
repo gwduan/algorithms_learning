@@ -24,6 +24,10 @@ func TestQuickSort(t *testing.T) {
 	sortFuncTest(QuickSort, t)
 }
 
+func TestHeapSort(t *testing.T) {
+	sortFuncTest(HeapSort, t)
+}
+
 func sortFuncTest(sf sortFunc, t *testing.T) {
 	want := []int{1, 2, 3, 4, 5, 7}
 
