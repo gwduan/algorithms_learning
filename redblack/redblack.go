@@ -126,9 +126,29 @@ func fixUp(e *Element) *Element {
 	return e
 }
 
+func balance(e *Element) *Element {
+	if isRed(e.right) {
+		e = rotateLeft(e)
+	}
+
+	if isRed(e.left) && isRed(e.left.left) {
+		e = rotateRight(e)
+	}
+
+	if isRed(e.left) && isRed(e.right) {
+		flipColors(e)
+	}
+
+	return e
+}
+
 func (r *RedBlackTree) DeleteMax() {
 	if r.root == nil {
 		return
+	}
+
+	if !isRed(r.root.left) && !isRed(r.root.right) {
+		r.root.color = RED
 	}
 
 	r.root = r.deleteMax(r.root)
@@ -153,12 +173,16 @@ func (r *RedBlackTree) deleteMax(e *Element) *Element {
 
 	e.right = r.deleteMax(e.right)
 
-	return fixUp(e)
+	return balance(e)
 }
 
 func (r *RedBlackTree) DeleteMin() {
 	if r.root == nil {
 		return
+	}
+
+	if !isRed(r.root.left) && !isRed(r.root.right) {
+		r.root.color = RED
 	}
 
 	r.root = r.deleteMin(r.root)
@@ -179,12 +203,16 @@ func (r *RedBlackTree) deleteMin(e *Element) *Element {
 
 	e.left = r.deleteMin(e.left)
 
-	return fixUp(e)
+	return balance(e)
 }
 
 func (r *RedBlackTree) DeleteValue(value int) {
 	if r.root == nil {
 		return
+	}
+
+	if !isRed(r.root.left) && !isRed(r.root.right) {
+		r.root.color = RED
 	}
 
 	r.root = r.deleteValue(r.root, value)
@@ -222,7 +250,7 @@ func (r *RedBlackTree) deleteValue(e *Element, value int) *Element {
 		}
 	}
 
-	return fixUp(e)
+	return balance(e)
 }
 
 func min(e *Element) int {
