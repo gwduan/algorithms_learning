@@ -7,15 +7,15 @@ var (
 )
 
 const (
-	BLACK = 0
-	RED   = 1
+	BLACK = false
+	RED   = true
 )
 
 type Element struct {
 	value int
 	left  *Element
 	right *Element
-	color int
+	color bool
 }
 
 type RedBlackTree struct {
@@ -23,7 +23,7 @@ type RedBlackTree struct {
 	length int
 }
 
-func newElement(value int, color int) *Element {
+func newElement(value int, color bool) *Element {
 	return &Element{value: value, color: color}
 }
 
@@ -73,19 +73,7 @@ func (r *RedBlackTree) insertValue(e *Element, value int) *Element {
 		return e
 	}
 
-	if isRed(e.right) && !isRed(e.left) {
-		e = rotateLeft(e)
-	}
-
-	if isRed(e.left) && isRed(e.left.left) {
-		e = rotateRight(e)
-	}
-
-	if isRed(e.left) && isRed(e.right) {
-		flipColors(e)
-	}
-
-	return e
+	return fixUp(e)
 }
 
 func isRed(e *Element) bool {
@@ -117,7 +105,153 @@ func rotateRight(e *Element) *Element {
 }
 
 func flipColors(e *Element) {
-	e.color = RED
-	e.left.color = BLACK
-	e.right.color = BLACK
+	e.color = !e.color
+	e.left.color = !e.left.color
+	e.right.color = !e.right.color
+}
+
+func fixUp(e *Element) *Element {
+	if isRed(e.right) && !isRed(e.left) {
+		e = rotateLeft(e)
+	}
+
+	if isRed(e.left) && isRed(e.left.left) {
+		e = rotateRight(e)
+	}
+
+	if isRed(e.left) && isRed(e.right) {
+		flipColors(e)
+	}
+
+	return e
+}
+
+func (r *RedBlackTree) DeleteMax() {
+	if r.root == nil {
+		return
+	}
+
+	r.root = r.deleteMax(r.root)
+	if r.root != nil {
+		r.root.color = BLACK
+	}
+	r.length--
+}
+
+func (r *RedBlackTree) deleteMax(e *Element) *Element {
+	if isRed(e.left) {
+		e = rotateRight(e)
+	}
+
+	if e.right == nil {
+		return nil
+	}
+
+	if !isRed(e.right) && !isRed(e.right.left) {
+		e = moveRedRight(e)
+	}
+
+	e.right = r.deleteMax(e.right)
+
+	return fixUp(e)
+}
+
+func (r *RedBlackTree) DeleteMin() {
+	if r.root == nil {
+		return
+	}
+
+	r.root = r.deleteMin(r.root)
+	if r.root != nil {
+		r.root.color = BLACK
+	}
+	r.length--
+}
+
+func (r *RedBlackTree) deleteMin(e *Element) *Element {
+	if e.left == nil {
+		return nil
+	}
+
+	if !isRed(e.left) && !isRed(e.left.left) {
+		e = moveRedLeft(e)
+	}
+
+	e.left = r.deleteMin(e.left)
+
+	return fixUp(e)
+}
+
+func (r *RedBlackTree) DeleteValue(value int) {
+	if r.root == nil {
+		return
+	}
+
+	r.root = r.deleteValue(r.root, value)
+	if r.root != nil {
+		r.root.color = BLACK
+	}
+	r.length--
+}
+
+func (r *RedBlackTree) deleteValue(e *Element, value int) *Element {
+	if value < e.value {
+		if !isRed(e.left) && !isRed(e.left.left) {
+			e = moveRedLeft(e)
+		}
+
+		e.left = r.deleteValue(e.left, value)
+	} else {
+		if isRed(e.left) {
+			e = rotateRight(e)
+		}
+
+		if value == e.value && e.right == nil {
+			return nil
+		}
+
+		if !isRed(e.right) && !isRed(e.right.left) {
+			e = moveRedRight(e)
+		}
+
+		if value == e.value {
+			e.value = min(e.right)
+			e.right = r.deleteMin(e.right)
+		} else {
+			e.right = r.deleteValue(e.right, value)
+		}
+	}
+
+	return fixUp(e)
+}
+
+func min(e *Element) int {
+	for e.left != nil {
+		e = e.left
+	}
+
+	return e.value
+}
+
+func moveRedRight(e *Element) *Element {
+	flipColors(e)
+
+	if isRed(e.left.left) {
+		e = rotateRight(e)
+		flipColors(e)
+	}
+
+	return e
+}
+
+func moveRedLeft(e *Element) *Element {
+	flipColors(e)
+
+	if isRed(e.right.left) {
+		e.right = rotateRight(e.right)
+		e = rotateLeft(e)
+		flipColors(e)
+	}
+
+	return e
 }
