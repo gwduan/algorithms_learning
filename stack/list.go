@@ -1,7 +1,5 @@
 package stack
 
-import "errors"
-
 type element struct {
 	next  *element
 	value interface{}
@@ -36,7 +34,7 @@ func (s *ListStack) Push(e interface{}) interface{} {
 
 func (s *ListStack) Pop() (e interface{}, err error) {
 	if s.length == 0 {
-		return nil, errors.New("Stack is empty!")
+		return nil, ErrEmpty
 	}
 
 	headElement := s.head
@@ -49,7 +47,7 @@ func (s *ListStack) Pop() (e interface{}, err error) {
 
 func (s *ListStack) Top() (e interface{}, err error) {
 	if s.length == 0 {
-		return nil, errors.New("Stack is empty!")
+		return nil, ErrEmpty
 	}
 
 	return s.head.value, nil

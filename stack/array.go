@@ -1,7 +1,5 @@
 package stack
 
-import "errors"
-
 type ArrayStack struct {
 	pool   []interface{}
 	length int
@@ -34,7 +32,7 @@ func (s *ArrayStack) Push(e interface{}) interface{} {
 
 func (s *ArrayStack) Pop() (e interface{}, err error) {
 	if s.length == 0 {
-		return nil, errors.New("Stack is empty!")
+		return nil, ErrEmpty
 	}
 
 	s.length--
@@ -43,7 +41,7 @@ func (s *ArrayStack) Pop() (e interface{}, err error) {
 
 func (s *ArrayStack) Top() (e interface{}, err error) {
 	if s.length == 0 {
-		return nil, errors.New("Stack is empty!")
+		return nil, ErrEmpty
 	}
 
 	return s.pool[s.length-1], nil
