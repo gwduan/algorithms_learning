@@ -10,9 +10,7 @@ func SelectionSort(data []int, num int) {
 		}
 
 		if i != min {
-			tmp := data[i]
-			data[i] = data[min]
-			data[min] = tmp
+			data[i], data[min] = data[min], data[i]
 		}
 	}
 

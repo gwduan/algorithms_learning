@@ -20,16 +20,12 @@ func partition(data []int, low int, high int) int {
 	i := low
 	for j := low; j < high; j++ {
 		if data[j] < pivot {
-			tmp := data[i]
-			data[i] = data[j]
-			data[j] = tmp
+			data[i], data[j] = data[j], data[i]
 			i++
 		}
 	}
 
-	tmp := data[i]
-	data[i] = data[high]
-	data[high] = tmp
+	data[i], data[high] = data[high], data[i]
 
 	return i
 }

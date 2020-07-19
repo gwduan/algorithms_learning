@@ -8,9 +8,7 @@ func HeapSort(data []int, num int) {
 	buildHeap(data, num)
 
 	for k := num - 1; k > 0; k-- {
-		tmp := data[0]
-		data[0] = data[k]
-		data[k] = tmp
+		data[0], data[k] = data[k], data[0]
 
 		heapify(data, 0, k-1)
 	}
@@ -35,9 +33,7 @@ func heapify(data []int, i int, n int) {
 			break
 		}
 
-		tmp := data[i]
-		data[i] = data[maxPos]
-		data[maxPos] = tmp
+		data[i], data[maxPos] = data[maxPos], data[i]
 
 		i = maxPos
 	}

@@ -5,9 +5,7 @@ func BubbleSort(data []int, num int) {
 		flag := false
 		for j := 0; j < num-i-1; j++ {
 			if data[j] > data[j+1] {
-				tmp := data[j]
-				data[j] = data[j+1]
-				data[j+1] = tmp
+				data[j], data[j+1] = data[j+1], data[j]
 				flag = true
 			}
 		}
