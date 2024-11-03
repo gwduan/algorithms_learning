@@ -1,25 +1,96 @@
 package stack
 
-type ArrayStack struct {
-	pool   []interface{}
+import (
+	"sync"
+)
+
+type basicArrayStack struct {
+	pool   []any
 	length int
+	mu     sync.RWMutex
 }
 
-func NewArrayStack(size int) *ArrayStack {
-	return &ArrayStack{pool: make([]interface{}, size)}
+type FixedArrayStack struct {
+	basicArrayStack
 }
 
-func (s *ArrayStack) Size() int {
+type ArrayStack struct {
+	basicArrayStack
+}
+
+func (s *basicArrayStack) Size() int {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
 	return s.length
 }
 
-func (s *ArrayStack) IsEmpty() bool {
+func (s *basicArrayStack) IsEmpty() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
 	return s.length == 0
 }
 
-func (s *ArrayStack) Push(e interface{}) interface{} {
+func (s *basicArrayStack) Pop() (e any, err error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if s.length == 0 {
+		return e, ErrEmpty
+	}
+
+	s.length--
+	return s.pool[s.length], nil
+}
+
+func (s *basicArrayStack) Top() (e any, err error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if s.length == 0 {
+		return e, ErrEmpty
+	}
+
+	return s.pool[s.length-1], nil
+}
+
+func NewFixedArrayStack(size int) *FixedArrayStack {
+	return &FixedArrayStack{
+		basicArrayStack{
+			pool: make([]any, size),
+		},
+	}
+}
+
+func (s *FixedArrayStack) Push(e any) (any, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	if s.length == len(s.pool) {
-		newPool := make([]interface{}, len(s.pool)*2)
+		return e, ErrFull
+	}
+
+	s.pool[s.length] = e
+	s.length++
+
+	return e, nil
+}
+
+func NewArrayStack(initSize int) *ArrayStack {
+	return &ArrayStack{
+		basicArrayStack{
+			pool: make([]any, initSize),
+		},
+	}
+}
+
+func (s *ArrayStack) Push(e any) (any, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if s.length == len(s.pool) {
+		newPool := make([]any, len(s.pool)*2)
 		copy(newPool, s.pool)
 		s.pool = newPool
 	}
@@ -27,22 +98,5 @@ func (s *ArrayStack) Push(e interface{}) interface{} {
 	s.pool[s.length] = e
 	s.length++
 
-	return e
-}
-
-func (s *ArrayStack) Pop() (e interface{}, err error) {
-	if s.length == 0 {
-		return nil, ErrEmpty
-	}
-
-	s.length--
-	return s.pool[s.length], nil
-}
-
-func (s *ArrayStack) Top() (e interface{}, err error) {
-	if s.length == 0 {
-		return nil, ErrEmpty
-	}
-
-	return s.pool[s.length-1], nil
+	return e, nil
 }

@@ -2,12 +2,15 @@ package stack
 
 import "errors"
 
-var ErrEmpty = errors.New("stack is empty")
+var (
+	ErrEmpty = errors.New("Stack Empty")
+	ErrFull  = errors.New("Stack Full")
+)
 
 type Stack interface {
-	Push(v interface{}) interface{}
-	Pop() (interface{}, error)
-	Top() (interface{}, error)
+	Push(v any) (any, error)
+	Pop() (any, error)
+	Top() (any, error)
 	Size() int
 	IsEmpty() bool
 }

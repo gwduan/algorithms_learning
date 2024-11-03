@@ -18,3 +18,8 @@ func TestListStackPushTwo(t *testing.T) {
 	s := NewListStack()
 	pushTwoTest(s, t)
 }
+
+func TestListStackLock(t *testing.T) {
+	s := NewListStack()
+	lockTest(s, t)
+}

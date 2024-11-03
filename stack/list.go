@@ -1,13 +1,16 @@
 package stack
 
+import "sync"
+
 type element struct {
+	value any
 	next  *element
-	value interface{}
 }
 
 type ListStack struct {
 	head   *element
 	length int
+	mu     sync.RWMutex
 }
 
 func NewListStack() *ListStack {
@@ -15,39 +18,55 @@ func NewListStack() *ListStack {
 }
 
 func (s *ListStack) Size() int {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
 	return s.length
 }
 
 func (s *ListStack) IsEmpty() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
 	return s.length == 0
 }
 
-func (s *ListStack) Push(e interface{}) interface{} {
+func (s *ListStack) Push(e any) (any, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	newElement := &element{
 		value: e,
-		next:  s.head}
+		next:  s.head,
+	}
 	s.head = newElement
 	s.length++
 
-	return e
+	return e, nil
 }
 
-func (s *ListStack) Pop() (e interface{}, err error) {
+func (s *ListStack) Pop() (e any, err error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	if s.length == 0 {
-		return nil, ErrEmpty
+		return e, ErrEmpty
 	}
 
 	headElement := s.head
 	s.head = s.head.next
 	s.length--
-	headElement.next = nil
 
+	headElement.next = nil
 	return headElement.value, nil
 }
 
-func (s *ListStack) Top() (e interface{}, err error) {
+func (s *ListStack) Top() (e any, err error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
 	if s.length == 0 {
-		return nil, ErrEmpty
+		return e, ErrEmpty
 	}
 
 	return s.head.value, nil
