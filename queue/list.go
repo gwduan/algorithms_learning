@@ -1,14 +1,17 @@
 package queue
 
+import "sync"
+
 type element struct {
+	value any
 	next  *element
-	value interface{}
 }
 
 type ListQueue struct {
 	head   *element
 	tail   *element
 	length int
+	mu     sync.RWMutex
 }
 
 func NewListQueue() *ListQueue {
@@ -16,14 +19,23 @@ func NewListQueue() *ListQueue {
 }
 
 func (q *ListQueue) Size() int {
+	q.mu.RLock()
+	defer q.mu.RUnlock()
+
 	return q.length
 }
 
 func (q *ListQueue) IsEmpty() bool {
+	q.mu.RLock()
+	defer q.mu.RUnlock()
+
 	return q.length == 0
 }
 
-func (q *ListQueue) EnQueue(e interface{}) (v interface{}, err error) {
+func (q *ListQueue) Put(e any) (any, error) {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+
 	newElement := &element{value: e}
 	if q.length == 0 {
 		q.tail = newElement
@@ -37,9 +49,12 @@ func (q *ListQueue) EnQueue(e interface{}) (v interface{}, err error) {
 	return e, nil
 }
 
-func (q *ListQueue) DeQueue() (e interface{}, err error) {
+func (q *ListQueue) Get() (e any, err error) {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+
 	if q.length == 0 {
-		return nil, ErrEmpty
+		return e, ErrEmpty
 	}
 
 	headElement := q.head
@@ -54,17 +69,23 @@ func (q *ListQueue) DeQueue() (e interface{}, err error) {
 	return headElement.value, nil
 }
 
-func (q *ListQueue) Head() (e interface{}, err error) {
+func (q *ListQueue) Head() (e any, err error) {
+	q.mu.RLock()
+	defer q.mu.RUnlock()
+
 	if q.length == 0 {
-		return nil, ErrEmpty
+		return e, ErrEmpty
 	}
 
 	return q.head.value, nil
 }
 
-func (q *ListQueue) Tail() (e interface{}, err error) {
+func (q *ListQueue) Tail() (e any, err error) {
+	q.mu.RLock()
+	defer q.mu.RUnlock()
+
 	if q.length == 0 {
-		return nil, ErrEmpty
+		return e, ErrEmpty
 	}
 
 	return q.tail.value, nil

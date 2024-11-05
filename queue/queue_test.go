@@ -1,6 +1,9 @@
 package queue
 
-import "testing"
+import (
+	"sync"
+	"testing"
+)
 
 func newQueueTest(q Queue, t *testing.T) {
 	if got := q.Size(); got != 0 {
@@ -15,14 +18,14 @@ func newQueueTest(q Queue, t *testing.T) {
 	if _, err := q.Tail(); err != ErrEmpty {
 		t.Errorf("Tail() should fail because queue is empty")
 	}
-	if _, err := q.DeQueue(); err != ErrEmpty {
-		t.Errorf("DeQueue() should fail because queue is empty")
+	if _, err := q.Get(); err != ErrEmpty {
+		t.Errorf("Get() should fail because queue is empty")
 	}
 }
 
-func enQueueOneTest(q Queue, t *testing.T) {
-	if got, err := q.EnQueue(1); got != 1 || err != nil {
-		t.Errorf("EnQueue(1) == (%v, %v), want (%v, %v)", got, err, 1, nil)
+func putOneTest(q Queue, t *testing.T) {
+	if got, err := q.Put(1); got != 1 || err != nil {
+		t.Errorf("Put(1) == (%v, %v), want (%v, %v)", got, err, 1, nil)
 	}
 	if got := q.Size(); got != 1 {
 		t.Errorf("Size() == %v, want %v", got, 1)
@@ -37,8 +40,8 @@ func enQueueOneTest(q Queue, t *testing.T) {
 		t.Errorf("Tail() == (%v, %v), want (%v, %v)", got, err, 1, nil)
 	}
 
-	if got, err := q.DeQueue(); got != 1 || err != nil {
-		t.Errorf("DeQueue() == (%v, %v), want (%v, %v)", got, err, 1, nil)
+	if got, err := q.Get(); got != 1 || err != nil {
+		t.Errorf("Get() == (%v, %v), want (%v, %v)", got, err, 1, nil)
 	}
 	if got := q.Size(); got != 0 {
 		t.Errorf("Size() == %v, want %v", got, 0)
@@ -52,17 +55,17 @@ func enQueueOneTest(q Queue, t *testing.T) {
 	if _, err := q.Tail(); err != ErrEmpty {
 		t.Errorf("Tail() should fail because queue is empty")
 	}
-	if _, err := q.DeQueue(); err != ErrEmpty {
-		t.Errorf("DeQueue() should fail because queue is empty")
+	if _, err := q.Get(); err != ErrEmpty {
+		t.Errorf("Get() should fail because queue is empty")
 	}
 }
 
-func enQueueTwoTest(q Queue, t *testing.T) {
-	if got, err := q.EnQueue(1); got != 1 || err != nil {
-		t.Errorf("EnQueue(1) == (%v, %v), want (%v, %v)", got, err, 1, nil)
+func putTwoTest(q Queue, t *testing.T) {
+	if got, err := q.Put(1); got != 1 || err != nil {
+		t.Errorf("Put(1) == (%v, %v), want (%v, %v)", got, err, 1, nil)
 	}
-	if got, err := q.EnQueue(2); got != 2 || err != nil {
-		t.Errorf("EnQueue(2) == (%v, %v), want (%v, %v)", got, err, 2, nil)
+	if got, err := q.Put(2); got != 2 || err != nil {
+		t.Errorf("Put(2) == (%v, %v), want (%v, %v)", got, err, 2, nil)
 	}
 	if got := q.Size(); got != 2 {
 		t.Errorf("Size() == %v, want %v", got, 2)
@@ -77,8 +80,8 @@ func enQueueTwoTest(q Queue, t *testing.T) {
 		t.Errorf("Tail() == (%v, %v), want (%v, %v)", got, err, 2, nil)
 	}
 
-	if got, err := q.DeQueue(); got != 1 || err != nil {
-		t.Errorf("DeQueue() == (%v, %v), want (%v, %v)", got, err, 1, nil)
+	if got, err := q.Get(); got != 1 || err != nil {
+		t.Errorf("Get() == (%v, %v), want (%v, %v)", got, err, 1, nil)
 	}
 	if got := q.Size(); got != 1 {
 		t.Errorf("Size() == %v, want %v", got, 1)
@@ -93,8 +96,8 @@ func enQueueTwoTest(q Queue, t *testing.T) {
 		t.Errorf("Tail() == (%v, %v), want (%v, %v)", got, err, 2, nil)
 	}
 
-	if got, err := q.DeQueue(); got != 2 || err != nil {
-		t.Errorf("DeQueue() == (%v, %v), want (%v, %v)", got, err, 2, nil)
+	if got, err := q.Get(); got != 2 || err != nil {
+		t.Errorf("Get() == (%v, %v), want (%v, %v)", got, err, 2, nil)
 	}
 	if got := q.Size(); got != 0 {
 		t.Errorf("Size() == %v, want %v", got, 0)
@@ -108,7 +111,100 @@ func enQueueTwoTest(q Queue, t *testing.T) {
 	if _, err := q.Tail(); err != ErrEmpty {
 		t.Errorf("Tail() should fail because queue is empty")
 	}
-	if _, err := q.DeQueue(); err != ErrEmpty {
-		t.Errorf("DeQueue() should fail because queue is empty")
+	if _, err := q.Get(); err != ErrEmpty {
+		t.Errorf("Get() should fail because queue is empty")
+	}
+}
+
+func lockTest(q Queue, t *testing.T) {
+	chPut := make(chan int, 10)
+	chGet := make(chan int, 10)
+	chEmpty := make(chan int, 10)
+	chFull := make(chan int, 10)
+
+	var wg sync.WaitGroup
+	for i := 0; i < 10; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			var numPut, numFull int
+			for j := 0; j < 10000; j++ {
+				_, err := q.Put(j)
+				switch err {
+				case ErrFull:
+					numFull++
+				case nil:
+					numPut++
+				}
+			}
+			chPut <- numPut
+			chFull <- numFull
+		}()
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			var numGet, numEmpty int
+			for j := 0; j < 10000; j++ {
+				_, err := q.Get()
+				switch err {
+				case ErrEmpty:
+					numEmpty++
+				case nil:
+					numGet++
+				}
+			}
+			chGet <- numGet
+			chEmpty <- numEmpty
+		}()
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			for j := 0; j < 10000; j++ {
+				_ = q.Size()
+				_ = q.IsEmpty()
+				_, _ = q.Head()
+				_, _ = q.Tail()
+			}
+		}()
+	}
+	wg.Wait()
+
+	var totalPut, totalGet, totalFull, totalEmpty int
+	close(chPut)
+	close(chGet)
+	close(chEmpty)
+	close(chFull)
+	for v := range chPut {
+		totalPut += v
+	}
+	for v := range chGet {
+		totalGet += v
+	}
+	for v := range chEmpty {
+		totalEmpty += v
+	}
+	for v := range chFull {
+		totalFull += v
+	}
+	if totalPut+totalFull != totalGet+totalEmpty {
+		t.Errorf("Total put(%d)+full(%d) should == get(%d)+empty(%d)",
+			totalPut, totalFull, totalGet, totalEmpty)
+	}
+
+	remainGet := 0
+	for {
+		if _, err := q.Get(); err != nil {
+			break
+		}
+		remainGet++
+	}
+	if totalPut != totalGet+remainGet {
+		t.Errorf("Put(%d) should == Get(%d)", totalPut,
+			totalGet+remainGet)
 	}
 }

@@ -7,12 +7,17 @@ func TestNewListQueue(t *testing.T) {
 	newQueueTest(q, t)
 }
 
-func TestListQueueEnQueueOne(t *testing.T) {
+func TestListQueuePutOne(t *testing.T) {
 	q := NewListQueue()
-	enQueueOneTest(q, t)
+	putOneTest(q, t)
 }
 
-func TestListQueueEnQueueTwo(t *testing.T) {
+func TestListQueuePutTwo(t *testing.T) {
 	q := NewListQueue()
-	enQueueTwoTest(q, t)
+	putTwoTest(q, t)
+}
+
+func TestListQueueLock(t *testing.T) {
+	q := NewListQueue()
+	lockTest(q, t)
 }
