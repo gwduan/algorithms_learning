@@ -54,7 +54,9 @@ func (s *SkipList) Length() int {
 
 func (s *SkipList) Insert(value int) error {
 	newLevel := randomLevel()
+	incLevel := false
 	if newLevel > s.level {
+		incLevel = true
 		s.level++
 		newLevel = s.level
 	}
@@ -68,6 +70,9 @@ func (s *SkipList) Insert(value int) error {
 		}
 
 		if pre.forwards[i] != nil && pre.forwards[i].value == value {
+			if incLevel {
+				s.level--
+			}
 			return ErrDuplicate
 		}
 
@@ -96,7 +101,9 @@ func (s *SkipList) Delete(value int) error {
 
 		if pre.forwards[i] != nil && pre.forwards[i].value == value {
 			found = true
-			pre.forwards[i] = pre.forwards[i].forwards[i]
+			e := pre.forwards[i]
+			pre.forwards[i] = e.forwards[i]
+			e.forwards[i] = nil
 			if s.head.forwards[i] == nil {
 				s.level--
 			}
