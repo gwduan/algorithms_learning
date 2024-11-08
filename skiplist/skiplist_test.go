@@ -5,6 +5,10 @@ import (
 	"testing"
 )
 
+func cmpInts(a, b any) int {
+	return a.(int) - b.(int)
+}
+
 func TestNewSkipList(t *testing.T) {
 	s := NewSkipList()
 	if got := s.Level(); got != 0 {
@@ -13,17 +17,17 @@ func TestNewSkipList(t *testing.T) {
 	if got := s.Length(); got != 0 {
 		t.Errorf("Length() = %v, want %v", got, 0)
 	}
-	if got, err := s.Find(3); err == nil {
+	if got, err := s.Find(3, cmpInts); err == nil {
 		t.Errorf("Find(3) = (%v, %v), want (%v, %v)", got, err, nil, ErrNotFound)
 	}
-	if err := s.Delete(5); err == nil {
+	if err := s.Delete(5, cmpInts); err == nil {
 		t.Errorf("Delete(5) = %v, want %v", err, ErrNotFound)
 	}
 }
 
 func TestInsertOneValue(t *testing.T) {
 	s := NewSkipList()
-	if err := s.Insert(5); err != nil {
+	if err := s.Insert(5, cmpInts); err != nil {
 		t.Errorf("Insert(5) = %v, want %v", err, nil)
 	}
 	if got := s.Level(); got != 1 {
@@ -32,19 +36,19 @@ func TestInsertOneValue(t *testing.T) {
 	if got := s.Length(); got != 1 {
 		t.Errorf("Length() = %v, want %v", got, 1)
 	}
-	if got, err := s.Find(3); err == nil {
+	if got, err := s.Find(3, cmpInts); err == nil {
 		t.Errorf("Find(3) = (%v, %v), want (%v, %v)", got, err, nil, ErrNotFound)
 	}
-	if got, err := s.Find(5); got.Value() != 5 || err != nil {
+	if got, err := s.Find(5, cmpInts); got.Value() != 5 || err != nil {
 		t.Errorf("Find(5) = (%v, %v), want (%v, %v)", got, err, 5, nil)
 	}
-	if err := s.Insert(5); err == nil {
+	if err := s.Insert(5, cmpInts); err == nil {
 		t.Errorf("Insert(5) = %v, want %v", err, ErrDuplicate)
 	}
-	if err := s.Delete(1); err == nil {
+	if err := s.Delete(1, cmpInts); err == nil {
 		t.Errorf("Delete(1) = %v, want %v", err, ErrNotFound)
 	}
-	if err := s.Delete(5); err != nil {
+	if err := s.Delete(5, cmpInts); err != nil {
 		t.Errorf("Delete(5) = %v, want %v", err, nil)
 	}
 	if got := s.Level(); got != 0 {
@@ -58,7 +62,7 @@ func TestInsertOneValue(t *testing.T) {
 func TestInsertMultiValues(t *testing.T) {
 	s := NewSkipList()
 	for i := 5; i <= 100; i += 5 {
-		if err := s.Insert(i); err != nil {
+		if err := s.Insert(i, cmpInts); err != nil {
 			t.Errorf("Insert(%v) = %v, want %v", i, err, nil)
 		}
 	}
@@ -66,7 +70,7 @@ func TestInsertMultiValues(t *testing.T) {
 		t.Errorf("Length() = %v, want %v", got, 20)
 	}
 	for i := 100; i > 0; i -= 4 {
-		if err := s.Insert(i); i%(4*5) != 0 && err != nil {
+		if err := s.Insert(i, cmpInts); i%(4*5) != 0 && err != nil {
 			t.Errorf("Insert(%v) = %v, want %v", i, err, nil)
 		} else if i%(4*5) == 0 && err == nil {
 			t.Errorf("Insert(%v) = %v, want %v", i, err, ErrDuplicate)
@@ -75,27 +79,27 @@ func TestInsertMultiValues(t *testing.T) {
 	if got := s.Length(); got != 40 {
 		t.Errorf("Length() = %v, want %v", got, 40)
 	}
-	if got, err := s.Find(40); got.Value() != 40 || err != nil {
+	if got, err := s.Find(40, cmpInts); got.Value() != 40 || err != nil {
 		t.Errorf("Find(40) = (%v, %v), want (%v, %v)", got, err, 40, nil)
 	}
-	if got, err := s.Find(33); err == nil {
+	if got, err := s.Find(33, cmpInts); err == nil {
 		t.Errorf("Find(33) = (%v, %v), want (%v, %v)", got, err, nil, ErrNotFound)
 	}
 
 	for i := 4; i <= 100; i += 4 {
-		s.Delete(i)
+		s.Delete(i, cmpInts)
 	}
 	if got := s.Length(); got != 15 {
 		t.Errorf("Length() = %v, want %v", got, 15)
 	}
-	if got, err := s.Find(36); err == nil {
+	if got, err := s.Find(36, cmpInts); err == nil {
 		t.Errorf("Find(36) = (%v, %v), want (%v, %v)", got, err, nil, ErrNotFound)
 	}
-	if got, err := s.Find(25); got.Value() != 25 || err != nil {
+	if got, err := s.Find(25, cmpInts); got.Value() != 25 || err != nil {
 		t.Errorf("Find(25) = (%v, %v), want (%v, %v)", got, err, 25, nil)
 	}
 	for i := 5; i <= 100; i += 5 {
-		s.Delete(i)
+		s.Delete(i, cmpInts)
 	}
 	if got := s.Length(); got != 0 {
 		t.Errorf("Length() = %v, want %v", got, 0)
@@ -108,10 +112,10 @@ func TestInsertMultiValues(t *testing.T) {
 func TestFindAll(t *testing.T) {
 	s := NewSkipList()
 	for i := 5; i <= 100; i += 5 {
-		s.Insert(i)
+		s.Insert(i, cmpInts)
 	}
 	for i := 100; i > 0; i -= 4 {
-		s.Insert(i)
+		s.Insert(i, cmpInts)
 	}
 
 	wantValues := make([]int, 0, s.Length())
@@ -124,7 +128,7 @@ func TestFindAll(t *testing.T) {
 	gots, _ := s.FindAll()
 	gotValues := make([]int, 0, len(gots))
 	for _, v := range gots {
-		gotValues = append(gotValues, v.Value())
+		gotValues = append(gotValues, v.Value().(int))
 	}
 
 	if len(wantValues) != len(gotValues) {
@@ -140,10 +144,10 @@ func TestFindAll(t *testing.T) {
 func TestFindBetween(t *testing.T) {
 	s := NewSkipList()
 	for i := 5; i <= 100; i += 5 {
-		s.Insert(i)
+		s.Insert(i, cmpInts)
 	}
 	for i := 100; i > 0; i -= 4 {
-		s.Insert(i)
+		s.Insert(i, cmpInts)
 	}
 
 	wantValues := make([]int, 0, s.Length())
@@ -153,10 +157,10 @@ func TestFindBetween(t *testing.T) {
 		}
 	}
 
-	gots, _ := s.FindBetween(64, 94)
+	gots, _ := s.FindBetween(64, 94, cmpInts)
 	gotValues := make([]int, 0, len(gots))
 	for _, v := range gots {
-		gotValues = append(gotValues, v.Value())
+		gotValues = append(gotValues, v.Value().(int))
 	}
 
 	if len(wantValues) != len(gotValues) {
@@ -172,29 +176,29 @@ func TestFindBetween(t *testing.T) {
 func TestPrintInfo(t *testing.T) {
 	s := NewSkipList()
 	for i := 5; i <= 100; i += 5 {
-		s.Insert(i)
+		s.Insert(i, cmpInts)
 	}
 	for i := 100; i > 0; i -= 4 {
-		s.Insert(i)
+		s.Insert(i, cmpInts)
 	}
 
 	printAllValues(s)
 
-	findValuePath(s, 4)
-	findValuePath(s, 10)
-	findValuePath(s, 12)
-	findValuePath(s, 16)
-	findValuePath(s, 48)
-	findValuePath(s, 60)
-	findValuePath(s, 76)
-	findValuePath(s, 80)
-	findValuePath(s, 100)
+	findValuePath(s, 4, cmpInts)
+	findValuePath(s, 10, cmpInts)
+	findValuePath(s, 12, cmpInts)
+	findValuePath(s, 16, cmpInts)
+	findValuePath(s, 48, cmpInts)
+	findValuePath(s, 60, cmpInts)
+	findValuePath(s, 76, cmpInts)
+	findValuePath(s, 80, cmpInts)
+	findValuePath(s, 100, cmpInts)
 
-	findValuePath(s, 7)
-	findValuePath(s, 27)
-	findValuePath(s, 53)
-	findValuePath(s, 77)
-	findValuePath(s, 91)
+	findValuePath(s, 7, cmpInts)
+	findValuePath(s, 27, cmpInts)
+	findValuePath(s, 53, cmpInts)
+	findValuePath(s, 77, cmpInts)
+	findValuePath(s, 91, cmpInts)
 }
 
 func printAllValues(s *SkipList) {
@@ -211,23 +215,23 @@ func printAllValues(s *SkipList) {
 	fmt.Printf("SkipList content end ----------\n")
 }
 
-func findValuePath(s *SkipList, value int) {
+func findValuePath(s *SkipList, value any, cmp CmpFunc) {
 	times := 0
 	fmt.Printf("Find %v path: ", value)
 	pre := s.head
 	for i := s.level - 1; i >= 0; i-- {
-		for pre.forwards[i] != nil && pre.forwards[i].value < value {
+		for pre.forwards[i] != nil && cmp(pre.forwards[i].value, value) < 0 {
 			fmt.Printf("(%v,%v) -> ", pre.forwards[i].value, i+1)
 			times++
 			pre = pre.forwards[i]
 		}
 
-		if pre.forwards[i] != nil && pre.forwards[i].value > value {
+		if pre.forwards[i] != nil && cmp(pre.forwards[i].value, value) > 0 {
 			fmt.Printf("(%v,%v) -> ", pre.forwards[i].value, i+1)
 			times++
 		}
 
-		if pre.forwards[i] != nil && pre.forwards[i].value == value {
+		if pre.forwards[i] != nil && cmp(pre.forwards[i].value, value) == 0 {
 			times++
 			fmt.Printf("(%v,%v), times=%v.\n", pre.forwards[i].value, i+1, times)
 			return

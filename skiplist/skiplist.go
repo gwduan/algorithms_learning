@@ -3,6 +3,7 @@ package skiplist
 import (
 	"errors"
 	"math/rand"
+	"sync"
 )
 
 const MAX_LEVEL = 16
@@ -13,7 +14,7 @@ var (
 )
 
 type Element struct {
-	value    int
+	value    any
 	level    int
 	forwards []*Element
 }
@@ -22,9 +23,12 @@ type SkipList struct {
 	head   *Element
 	level  int
 	length int
+	mu     sync.RWMutex
 }
 
-func newElement(value int, level int) *Element {
+type CmpFunc func(any, any) int
+
+func newElement(value any, level int) *Element {
 	return &Element{
 		value:    value,
 		level:    level,
@@ -32,27 +36,36 @@ func newElement(value int, level int) *Element {
 	}
 }
 
-func (e *Element) Value() int {
+func (e *Element) Value() any {
 	return e.value
 }
 
 func NewSkipList() *SkipList {
+	var zero any
+
 	return &SkipList{
-		head:   newElement(0, MAX_LEVEL),
-		level:  0,
-		length: 0,
+		head: newElement(zero, MAX_LEVEL),
 	}
 }
 
 func (s *SkipList) Level() int {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
 	return s.level
 }
 
 func (s *SkipList) Length() int {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
 	return s.length
 }
 
-func (s *SkipList) Insert(value int) error {
+func (s *SkipList) Insert(value any, cmp CmpFunc) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	newLevel := randomLevel()
 	incLevel := false
 	if newLevel > s.level {
@@ -65,11 +78,11 @@ func (s *SkipList) Insert(value int) error {
 	preNodes := make([]*Element, newLevel, newLevel)
 	pre := s.head
 	for i := s.level - 1; i >= 0; i-- {
-		for pre.forwards[i] != nil && pre.forwards[i].value < value {
+		for pre.forwards[i] != nil && cmp(pre.forwards[i].value, value) < 0 {
 			pre = pre.forwards[i]
 		}
 
-		if pre.forwards[i] != nil && pre.forwards[i].value == value {
+		if pre.forwards[i] != nil && cmp(pre.forwards[i].value, value) == 0 {
 			if incLevel {
 				s.level--
 			}
@@ -91,15 +104,18 @@ func (s *SkipList) Insert(value int) error {
 	return nil
 }
 
-func (s *SkipList) Delete(value int) error {
+func (s *SkipList) Delete(value any, cmp CmpFunc) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	found := false
 	pre := s.head
 	for i := s.level - 1; i >= 0; i-- {
-		for pre.forwards[i] != nil && pre.forwards[i].value < value {
+		for pre.forwards[i] != nil && cmp(pre.forwards[i].value, value) < 0 {
 			pre = pre.forwards[i]
 		}
 
-		if pre.forwards[i] != nil && pre.forwards[i].value == value {
+		if pre.forwards[i] != nil && cmp(pre.forwards[i].value, value) == 0 {
 			found = true
 			e := pre.forwards[i]
 			pre.forwards[i] = e.forwards[i]
@@ -118,14 +134,17 @@ func (s *SkipList) Delete(value int) error {
 	return ErrNotFound
 }
 
-func (s *SkipList) Find(value int) (*Element, error) {
+func (s *SkipList) Find(value any, cmp CmpFunc) (*Element, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
 	pre := s.head
 	for i := s.level - 1; i >= 0; i-- {
-		for pre.forwards[i] != nil && pre.forwards[i].value < value {
+		for pre.forwards[i] != nil && cmp(pre.forwards[i].value, value) < 0 {
 			pre = pre.forwards[i]
 		}
 
-		if pre.forwards[i] != nil && pre.forwards[i].value == value {
+		if pre.forwards[i] != nil && cmp(pre.forwards[i].value, value) == 0 {
 			return pre.forwards[i], nil
 		}
 	}
@@ -134,6 +153,9 @@ func (s *SkipList) Find(value int) (*Element, error) {
 }
 
 func (s *SkipList) FindAll() ([]*Element, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
 	if s.length == 0 {
 		return nil, ErrNotFound
 	}
@@ -146,20 +168,23 @@ func (s *SkipList) FindAll() ([]*Element, error) {
 	return results, nil
 }
 
-func (s *SkipList) FindBetween(begin int, end int) ([]*Element, error) {
+func (s *SkipList) FindBetween(begin any, end any, cmp CmpFunc) ([]*Element, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
 	if s.length == 0 {
 		return nil, ErrNotFound
 	}
 
 	pre := s.head
 	for i := s.level - 1; i >= 0; i-- {
-		for pre.forwards[i] != nil && pre.forwards[i].value < begin {
+		for pre.forwards[i] != nil && cmp(pre.forwards[i].value, begin) < 0 {
 			pre = pre.forwards[i]
 		}
 	}
 
 	results := make([]*Element, 0, 100)
-	for pre.forwards[0] != nil && pre.forwards[0].value < end {
+	for pre.forwards[0] != nil && cmp(pre.forwards[0].value, end) < 0 {
 		results = append(results, pre.forwards[0])
 		pre = pre.forwards[0]
 	}
