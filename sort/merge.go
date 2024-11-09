@@ -1,28 +1,28 @@
 package sort
 
-func MergeSort(data []int, num int) {
-	mergeSort(data, 0, num-1)
+func MergeSort[E any](data []E, num int, cmp func(E, E) int) {
+	mergeSort(data, 0, num-1, cmp)
 }
 
-func mergeSort(data []int, low int, high int) {
+func mergeSort[E any](data []E, low int, high int, cmp func(E, E) int) {
 	if low >= high {
 		return
 	}
 
 	mid := (low + high) / 2
-	mergeSort(data, low, mid)
-	mergeSort(data, mid+1, high)
+	mergeSort(data, low, mid, cmp)
+	mergeSort(data, mid+1, high, cmp)
 
-	merge(data, low, mid, high)
+	merge(data, low, mid, high, cmp)
 }
 
-func merge(data []int, low int, mid int, high int) {
+func merge[E any](data []E, low int, mid int, high int, cmp func(E, E) int) {
 	i := low
 	j := mid + 1
 	k := 0
-	tmp := make([]int, high-low+1)
+	tmp := make([]E, high-low+1)
 	for i <= mid && j <= high {
-		if data[i] <= data[j] {
+		if cmp(data[i], data[j]) <= 0 {
 			tmp[k] = data[i]
 			i++
 		} else {
