@@ -1,10 +1,10 @@
 package sort
 
-func SelectionSort(data []int, num int) {
+func SelectionSort[E any](data []E, num int, cmp func(E, E) int) {
 	for i := 0; i < num; i++ {
 		min := i
 		for j := i + 1; j < num; j++ {
-			if data[j] < data[min] {
+			if cmp(data[j], data[min]) < 0 {
 				min = j
 			}
 		}
@@ -13,6 +13,4 @@ func SelectionSort(data []int, num int) {
 			data[i], data[min] = data[min], data[i]
 		}
 	}
-
-	return
 }
