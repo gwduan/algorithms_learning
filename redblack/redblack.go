@@ -3,7 +3,7 @@ package redblack
 import "errors"
 
 var (
-	ErrNotFound = errors.New("not found")
+	ErrNotFound = errors.New("Not Found")
 )
 
 const (
@@ -12,39 +12,46 @@ const (
 )
 
 type Element struct {
-	value int
+	value any
 	left  *Element
 	right *Element
 	color bool
 }
 
+type CmpFunc func(any, any) int
+
 type RedBlackTree struct {
 	root   *Element
+	cmp    CmpFunc
 	length int
 }
 
-func newElement(value int, color bool) *Element {
-	return &Element{value: value, color: color}
+func newElement(value any, color bool) *Element {
+	return &Element{
+		value: value, color: color,
+	}
 }
 
-func (e *Element) Value() int {
+func (e *Element) Value() any {
 	return e.value
 }
 
-func NewRedBlackTree() *RedBlackTree {
-	return &RedBlackTree{}
+func NewRedBlackTree(cmp CmpFunc) *RedBlackTree {
+	return &RedBlackTree{
+		cmp: cmp,
+	}
 }
 
 func (r *RedBlackTree) Length() int {
 	return r.length
 }
 
-func (r *RedBlackTree) Find(value int) (*Element, error) {
+func (r *RedBlackTree) Find(value any) (*Element, error) {
 	for p := r.root; p != nil; {
 		switch {
-		case value < p.value:
+		case r.cmp(value, p.value) < 0:
 			p = p.left
-		case value > p.value:
+		case r.cmp(value, p.value) > 0:
 			p = p.right
 		default:
 			return p, nil
@@ -54,20 +61,20 @@ func (r *RedBlackTree) Find(value int) (*Element, error) {
 	return nil, ErrNotFound
 }
 
-func (r *RedBlackTree) Insert(value int) {
+func (r *RedBlackTree) Insert(value any) {
 	r.root = r.insertValue(r.root, value)
 	r.root.color = BLACK
 }
 
-func (r *RedBlackTree) insertValue(e *Element, value int) *Element {
+func (r *RedBlackTree) insertValue(e *Element, value any) *Element {
 	if e == nil {
 		r.length++
 		return newElement(value, RED)
 	}
 
-	if value < e.value {
+	if r.cmp(value, e.value) < 0 {
 		e.left = r.insertValue(e.left, value)
-	} else if value > e.value {
+	} else if r.cmp(value, e.value) > 0 {
 		e.right = r.insertValue(e.right, value)
 	} else {
 		return e
@@ -206,7 +213,7 @@ func (r *RedBlackTree) deleteMin(e *Element) *Element {
 	return balance(e)
 }
 
-func (r *RedBlackTree) DeleteValue(value int) {
+func (r *RedBlackTree) DeleteValue(value any) {
 	if r.root == nil {
 		return
 	}
@@ -222,8 +229,8 @@ func (r *RedBlackTree) DeleteValue(value int) {
 	r.length--
 }
 
-func (r *RedBlackTree) deleteValue(e *Element, value int) *Element {
-	if value < e.value {
+func (r *RedBlackTree) deleteValue(e *Element, value any) *Element {
+	if r.cmp(value, e.value) < 0 {
 		if !isRed(e.left) && !isRed(e.left.left) {
 			e = moveRedLeft(e)
 		}
@@ -234,7 +241,7 @@ func (r *RedBlackTree) deleteValue(e *Element, value int) *Element {
 			e = rotateRight(e)
 		}
 
-		if value == e.value && e.right == nil {
+		if r.cmp(value, e.value) == 0 && e.right == nil {
 			return nil
 		}
 
@@ -242,7 +249,7 @@ func (r *RedBlackTree) deleteValue(e *Element, value int) *Element {
 			e = moveRedRight(e)
 		}
 
-		if value == e.value {
+		if r.cmp(value, e.value) == 0 {
 			e.value = min(e.right)
 			e.right = r.deleteMin(e.right)
 		} else {
@@ -253,7 +260,7 @@ func (r *RedBlackTree) deleteValue(e *Element, value int) *Element {
 	return balance(e)
 }
 
-func min(e *Element) int {
+func min(e *Element) any {
 	for e.left != nil {
 		e = e.left
 	}

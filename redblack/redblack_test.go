@@ -5,10 +5,14 @@ import (
 	"testing"
 )
 
+func cmpInts(a, b any) int {
+	return a.(int) - b.(int)
+}
+
 type orderFunc func(*Element, []int) []int
 
 func TestNewRedBlackTree(t *testing.T) {
-	r := NewRedBlackTree()
+	r := NewRedBlackTree(cmpInts)
 
 	if got := r.Length(); got != 0 {
 		t.Errorf("Length() = %v, want %v", got, 0)
@@ -19,7 +23,7 @@ func TestNewRedBlackTree(t *testing.T) {
 }
 
 func TestRedBlackTreeInsert(t *testing.T) {
-	r := NewRedBlackTree()
+	r := NewRedBlackTree(cmpInts)
 	r.Insert(8)
 	r.Insert(2)
 	r.Insert(0)
@@ -136,7 +140,7 @@ func color(color bool) string {
 }
 
 func TestRedBlackTreeDeleteMax(t *testing.T) {
-	r := NewRedBlackTree()
+	r := NewRedBlackTree(cmpInts)
 	r.Insert(8)
 	r.Insert(2)
 	r.Insert(0)
@@ -236,7 +240,7 @@ func TestRedBlackTreeDeleteMax(t *testing.T) {
 }
 
 func TestRedBlackTreeDeleteMin(t *testing.T) {
-	r := NewRedBlackTree()
+	r := NewRedBlackTree(cmpInts)
 	r.Insert(8)
 	r.Insert(2)
 	r.Insert(0)
@@ -336,7 +340,7 @@ func TestRedBlackTreeDeleteMin(t *testing.T) {
 }
 
 func TestRedBlackTreeDeleteNonBottomValue(t *testing.T) {
-	r := NewRedBlackTree()
+	r := NewRedBlackTree(cmpInts)
 	r.Insert(8)
 	r.Insert(2)
 	r.Insert(0)
@@ -436,7 +440,7 @@ func TestRedBlackTreeDeleteNonBottomValue(t *testing.T) {
 }
 
 func TestRedBlackTreeDeleteBottomValue(t *testing.T) {
-	r := NewRedBlackTree()
+	r := NewRedBlackTree(cmpInts)
 	r.Insert(8)
 	r.Insert(2)
 	r.Insert(0)
@@ -564,7 +568,7 @@ func inOrder(p *Element, s []int) []int {
 	}
 
 	s = inOrder(p.left, s)
-	s = append(s, p.value)
+	s = append(s, p.value.(int))
 	s = inOrder(p.right, s)
 
 	return s
@@ -575,7 +579,7 @@ func preOrder(p *Element, s []int) []int {
 		return s
 	}
 
-	s = append(s, p.value)
+	s = append(s, p.value.(int))
 	s = preOrder(p.left, s)
 	s = preOrder(p.right, s)
 
@@ -589,7 +593,7 @@ func postOrder(p *Element, s []int) []int {
 
 	s = postOrder(p.left, s)
 	s = postOrder(p.right, s)
-	s = append(s, p.value)
+	s = append(s, p.value.(int))
 
 	return s
 }
