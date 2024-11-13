@@ -4,38 +4,45 @@ import "errors"
 
 var (
 	ErrDuplicate = errors.New("Duplicate")
-	ErrNotFound  = errors.New("not found")
+	ErrNotFound  = errors.New("Not Found")
 )
 
+type CmpFunc func(any, any) int
+
 type element struct {
-	value int
+	value any
 	left  *element
 	right *element
 }
 
 type BinarySearchTree struct {
 	root   *element
+	cmp    CmpFunc
 	length int
 }
 
-func newElement(value int) *element {
-	return &element{value: value}
+func newElement(value any) *element {
+	return &element{
+		value: value,
+	}
 }
 
-func NewBinarySearchTree() *BinarySearchTree {
-	return &BinarySearchTree{}
+func NewBinarySearchTree(cmp CmpFunc) *BinarySearchTree {
+	return &BinarySearchTree{
+		cmp: cmp,
+	}
 }
 
 func (t *BinarySearchTree) Length() int {
 	return t.length
 }
 
-func (t *BinarySearchTree) Find(value int) (*element, error) {
+func (t *BinarySearchTree) Find(value any) (*element, error) {
 	for p := t.root; p != nil; {
 		switch {
-		case value < p.value:
+		case t.cmp(value, p.value) < 0:
 			p = p.left
-		case value > p.value:
+		case t.cmp(value, p.value) > 0:
 			p = p.right
 		default:
 			return p, nil
@@ -45,7 +52,7 @@ func (t *BinarySearchTree) Find(value int) (*element, error) {
 	return nil, ErrNotFound
 }
 
-func (t *BinarySearchTree) Insert(value int) error {
+func (t *BinarySearchTree) Insert(value any) error {
 	node := newElement(value)
 	if t.root == nil {
 		t.root = node
@@ -56,14 +63,14 @@ func (t *BinarySearchTree) Insert(value int) error {
 	p := t.root
 	for {
 		switch {
-		case value < p.value:
+		case t.cmp(value, p.value) < 0:
 			if p.left == nil {
 				p.left = node
 				t.length++
 				return nil
 			}
 			p = p.left
-		case value > p.value:
+		case t.cmp(value, p.value) > 0:
 			if p.right == nil {
 				p.right = node
 				t.length++
@@ -76,7 +83,7 @@ func (t *BinarySearchTree) Insert(value int) error {
 	}
 }
 
-func (t *BinarySearchTree) Delete(value int) error {
+func (t *BinarySearchTree) Delete(value any) error {
 	if t.root == nil {
 		return ErrNotFound
 	}
@@ -85,9 +92,9 @@ func (t *BinarySearchTree) Delete(value int) error {
 	parent := t.root
 	replace := t.root
 	for p != nil {
-		if value == p.value {
+		if t.cmp(value, p.value) == 0 {
 			break
-		} else if value < p.value {
+		} else if t.cmp(value, p.value) < 0 {
 			parent = p
 			p = p.left
 		} else {

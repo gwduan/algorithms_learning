@@ -7,8 +7,12 @@ import (
 
 type orderFunc func(*element, []int) []int
 
+func cmpInts(a, b any) int {
+	return a.(int) - b.(int)
+}
+
 func TestBinarySearchTree(t *testing.T) {
-	b := NewBinarySearchTree()
+	b := NewBinarySearchTree(cmpInts)
 	if got := b.Length(); got != 0 {
 		t.Errorf("Length() = %v, want %v", got, 0)
 	}
@@ -73,7 +77,7 @@ func TestBinarySearchTree(t *testing.T) {
 }
 
 func TestBinarySearchTreeDeleteLeafNode(t *testing.T) {
-	b := NewBinarySearchTree()
+	b := NewBinarySearchTree(cmpInts)
 	if err := b.Delete(5); err != ErrNotFound {
 		t.Errorf("Delete(5) = %v, want %v", err, ErrNotFound)
 	}
@@ -139,7 +143,7 @@ func TestBinarySearchTreeDeleteLeafNode(t *testing.T) {
 }
 
 func TestBinarySearchTreeDeleteOneChildNode(t *testing.T) {
-	b := NewBinarySearchTree()
+	b := NewBinarySearchTree(cmpInts)
 	b.Insert(5)
 	b.Insert(3)
 	b.Insert(8)
@@ -234,7 +238,7 @@ func TestBinarySearchTreeDeleteOneChildNode(t *testing.T) {
 }
 
 func TestBinarySearchTreeDeleteTwoChildNode(t *testing.T) {
-	b := NewBinarySearchTree()
+	b := NewBinarySearchTree(cmpInts)
 	b.Insert(5)
 	b.Insert(3)
 	b.Insert(8)
@@ -288,7 +292,7 @@ func TestBinarySearchTreeDeleteTwoChildNode(t *testing.T) {
 }
 
 func TestBinarySearchTreeDeleteRootNode(t *testing.T) {
-	b := NewBinarySearchTree()
+	b := NewBinarySearchTree(cmpInts)
 	b.Insert(5)
 	b.Insert(3)
 	b.Insert(8)
@@ -370,7 +374,7 @@ func inOrder(p *element, s []int) []int {
 	}
 
 	s = inOrder(p.left, s)
-	s = append(s, p.value)
+	s = append(s, p.value.(int))
 	s = inOrder(p.right, s)
 
 	return s
@@ -381,7 +385,7 @@ func preOrder(p *element, s []int) []int {
 		return s
 	}
 
-	s = append(s, p.value)
+	s = append(s, p.value.(int))
 	s = preOrder(p.left, s)
 	s = preOrder(p.right, s)
 
@@ -395,7 +399,7 @@ func postOrder(p *element, s []int) []int {
 
 	s = postOrder(p.left, s)
 	s = postOrder(p.right, s)
-	s = append(s, p.value)
+	s = append(s, p.value.(int))
 
 	return s
 }
