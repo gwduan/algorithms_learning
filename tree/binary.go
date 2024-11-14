@@ -52,6 +52,82 @@ func (t *BinarySearchTree) Find(value any) (*element, error) {
 	return nil, ErrNotFound
 }
 
+func (t *BinarySearchTree) Left() (*element, error) {
+	if t.root == nil {
+		return nil, ErrNotFound
+	}
+
+	var parent *element
+	p := t.root
+	for p != nil {
+		parent = p
+		p = p.left
+	}
+
+	return parent, nil
+}
+
+func (t *BinarySearchTree) Right() (*element, error) {
+	if t.root == nil {
+		return nil, ErrNotFound
+	}
+
+	var parent *element
+	p := t.root
+	for p != nil {
+		parent = p
+		p = p.right
+	}
+
+	return parent, nil
+}
+
+func (t *BinarySearchTree) Floor(value any) (floor *element, err error) {
+	found := false
+	p := t.root
+	for p != nil {
+		switch {
+		case t.cmp(value, p.value) == 0:
+			return p, nil
+		case t.cmp(value, p.value) < 0:
+			p = p.left
+		default:
+			floor = p
+			found = true
+			p = p.right
+		}
+	}
+
+	if found {
+		return floor, nil
+	}
+
+	return nil, ErrNotFound
+}
+
+func (t *BinarySearchTree) Ceiling(value any) (ceiling *element, err error) {
+	found := false
+	p := t.root
+	for p != nil {
+		switch {
+		case t.cmp(value, p.value) == 0:
+			return p, nil
+		case t.cmp(value, p.value) < 0:
+			ceiling = p
+			found = true
+			p = p.left
+		default:
+			p = p.right
+		}
+	}
+
+	if found {
+		return ceiling, nil
+	}
+
+	return nil, ErrNotFound
+}
+
 func (t *BinarySearchTree) Insert(value any) error {
 	node := newElement(value)
 	if t.root == nil {

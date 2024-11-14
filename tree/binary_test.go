@@ -76,6 +76,77 @@ func TestBinarySearchTree(t *testing.T) {
 	}
 }
 
+func TestBinarySearchTreeLeftRight(t *testing.T) {
+	b := NewBinarySearchTree(cmpInts)
+	if got, err := b.Left(); got != nil || err != ErrNotFound {
+		t.Errorf("Left() = (%v,%v), want (%v,%v)", got, err, nil, ErrNotFound)
+	}
+	if got, err := b.Right(); got != nil || err != ErrNotFound {
+		t.Errorf("Right() = (%v,%v), want (%v,%v)", got, err, nil, ErrNotFound)
+	}
+
+	b.Insert(5)
+	if got, err := b.Left(); got.value != 5 || err != nil {
+		t.Errorf("Left() = (%v,%v), want (%v,%v)", got.value, err, 5, nil)
+	}
+	if got, err := b.Right(); got.value != 5 || err != nil {
+		t.Errorf("Right() = (%v,%v), want (%v,%v)", got.value, err, 5, nil)
+	}
+
+	b.Insert(3)
+	b.Insert(8)
+	b.Insert(9)
+	b.Insert(7)
+	b.Insert(1)
+	b.Insert(4)
+	b.Insert(6)
+	b.Insert(2)
+	if got, err := b.Left(); got.value != 1 || err != nil {
+		t.Errorf("Left() = (%v,%v), want (%v,%v)", got.value, err, 1, nil)
+	}
+	if got, err := b.Right(); got.value != 9 || err != nil {
+		t.Errorf("Right() = (%v,%v), want (%v,%v)", got.value, err, 9, nil)
+	}
+}
+
+func TestBinarySearchTreeFloorCeiling(t *testing.T) {
+	b := NewBinarySearchTree(cmpInts)
+	b.Insert(50)
+	b.Insert(30)
+	b.Insert(80)
+	b.Insert(90)
+	b.Insert(70)
+	b.Insert(10)
+	b.Insert(40)
+	b.Insert(60)
+	b.Insert(20)
+	if got, err := b.Floor(40); got.value != 40 || err != nil {
+		t.Errorf("Floor(40) = (%v,%v), want (%v,%v)", got.value, err, 40, nil)
+	}
+	if got, err := b.Floor(45); got.value != 40 || err != nil {
+		t.Errorf("Floor(45) = (%v,%v), want (%v,%v)", got.value, err, 40, nil)
+	}
+	if got, err := b.Floor(55); got.value != 50 || err != nil {
+		t.Errorf("Floor(55) = (%v,%v), want (%v,%v)", got.value, err, 50, nil)
+	}
+	if got, err := b.Floor(5); got != nil || err != ErrNotFound {
+		t.Errorf("Floor(5) = (%v,%v), want (%v,%v)", got, err, nil, ErrNotFound)
+	}
+
+	if got, err := b.Ceiling(40); got.value != 40 || err != nil {
+		t.Errorf("Ceiling(40) = (%v,%v), want (%v,%v)", got.value, err, 40, nil)
+	}
+	if got, err := b.Ceiling(45); got.value != 50 || err != nil {
+		t.Errorf("Ceiling(45) = (%v,%v), want (%v,%v)", got.value, err, 50, nil)
+	}
+	if got, err := b.Ceiling(85); got.value != 90 || err != nil {
+		t.Errorf("Ceiling(85) = (%v,%v), want (%v,%v)", got.value, err, 90, nil)
+	}
+	if got, err := b.Ceiling(95); got != nil || err != ErrNotFound {
+		t.Errorf("Ceiling(95) = (%v,%v), want (%v,%v)", got, err, nil, ErrNotFound)
+	}
+}
+
 func TestBinarySearchTreeDeleteLeafNode(t *testing.T) {
 	b := NewBinarySearchTree(cmpInts)
 	if err := b.Delete(5); err != ErrNotFound {
