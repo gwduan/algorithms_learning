@@ -61,6 +61,94 @@ func (r *RedBlackTree) Find(value any) (*Element, error) {
 	return nil, ErrNotFound
 }
 
+func (r *RedBlackTree) Left() (*Element, error) {
+	if r.root == nil {
+		return nil, ErrNotFound
+	}
+
+	return left(r.root), nil
+}
+
+func left(p *Element) *Element {
+	if p.left == nil {
+		return p
+	}
+
+	return left(p.left)
+}
+
+func (r *RedBlackTree) Right() (*Element, error) {
+	if r.root == nil {
+		return nil, ErrNotFound
+	}
+
+	return right(r.root), nil
+}
+
+func right(p *Element) *Element {
+	if p.right == nil {
+		return p
+	}
+
+	return right(p.right)
+}
+
+func (r *RedBlackTree) Floor(value any) (*Element, error) {
+	p := r.floor(r.root, value)
+	if p == nil {
+		return nil, ErrNotFound
+	}
+
+	return p, nil
+}
+
+func (r *RedBlackTree) floor(e *Element, value any) *Element {
+	if e == nil {
+		return nil
+	}
+
+	switch {
+	case r.cmp(value, e.value) == 0:
+		return e
+	case r.cmp(value, e.value) < 0:
+		return r.floor(e.left, value)
+	default:
+		p := r.floor(e.right, value)
+		if p == nil {
+			return e
+		}
+		return p
+	}
+}
+
+func (r *RedBlackTree) Ceiling(value any) (*Element, error) {
+	p := r.ceiling(r.root, value)
+	if p == nil {
+		return nil, ErrNotFound
+	}
+
+	return p, nil
+}
+
+func (r *RedBlackTree) ceiling(e *Element, value any) *Element {
+	if e == nil {
+		return nil
+	}
+
+	switch {
+	case r.cmp(value, e.value) == 0:
+		return e
+	case r.cmp(value, e.value) < 0:
+		p := r.ceiling(e.left, value)
+		if p == nil {
+			return e
+		}
+		return p
+	default:
+		return r.ceiling(e.right, value)
+	}
+}
+
 func (r *RedBlackTree) Insert(value any) {
 	r.root = r.insertValue(r.root, value)
 	r.root.color = BLACK

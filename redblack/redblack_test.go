@@ -139,6 +139,79 @@ func color(color bool) string {
 	return "b"
 }
 
+func TestRedBlackTreeLeftRight(t *testing.T) {
+	r := NewRedBlackTree(cmpInts)
+	if got, err := r.Left(); got != nil || err != ErrNotFound {
+		t.Errorf("Left() = (%v,%v), want (%v,%v)", got, err, nil, ErrNotFound)
+	}
+	if got, err := r.Right(); got != nil || err != ErrNotFound {
+		t.Errorf("Right() = (%v,%v), want (%v,%v)", got, err, nil, ErrNotFound)
+	}
+
+	r.Insert(8)
+	if got, err := r.Left(); got.value != 8 || err != nil {
+		t.Errorf("Left() = (%v,%v), want (%v,%v)", got.value, err, 8, nil)
+	}
+	if got, err := r.Right(); got.value != 8 || err != nil {
+		t.Errorf("Right() = (%v,%v), want (%v,%v)", got.value, err, 8, nil)
+	}
+
+	r.Insert(2)
+	r.Insert(0)
+	r.Insert(7)
+	r.Insert(1)
+	r.Insert(3)
+	r.Insert(9)
+	r.Insert(5)
+	r.Insert(6)
+	r.Insert(4)
+	if got, err := r.Left(); got.value != 0 || err != nil {
+		t.Errorf("Left() = (%v,%v), want (%v,%v)", got.value, err, 0, nil)
+	}
+	if got, err := r.Right(); got.value != 9 || err != nil {
+		t.Errorf("Right() = (%v,%v), want (%v,%v)", got.value, err, 9, nil)
+	}
+}
+
+func TestRedBlackTreeFloorCeiling(t *testing.T) {
+	r := NewRedBlackTree(cmpInts)
+	r.Insert(80)
+	r.Insert(20)
+	r.Insert(5)
+	r.Insert(70)
+	r.Insert(10)
+	r.Insert(30)
+	r.Insert(90)
+	r.Insert(50)
+	r.Insert(60)
+	r.Insert(40)
+	if got, err := r.Floor(40); got.value != 40 || err != nil {
+		t.Errorf("Floor(40) = (%v,%v), want (%v,%v)", got.value, err, 40, nil)
+	}
+	if got, err := r.Floor(45); got.value != 40 || err != nil {
+		t.Errorf("Floor(45) = (%v,%v), want (%v,%v)", got.value, err, 40, nil)
+	}
+	if got, err := r.Floor(55); got.value != 50 || err != nil {
+		t.Errorf("Floor(55) = (%v,%v), want (%v,%v)", got.value, err, 50, nil)
+	}
+	if got, err := r.Floor(1); got != nil || err != ErrNotFound {
+		t.Errorf("Floor(1) = (%v,%v), want (%v,%v)", got, err, nil, ErrNotFound)
+	}
+
+	if got, err := r.Ceiling(40); got.value != 40 || err != nil {
+		t.Errorf("Ceiling(40) = (%v,%v), want (%v,%v)", got.value, err, 40, nil)
+	}
+	if got, err := r.Ceiling(45); got.value != 50 || err != nil {
+		t.Errorf("Ceiling(45) = (%v,%v), want (%v,%v)", got.value, err, 50, nil)
+	}
+	if got, err := r.Ceiling(85); got.value != 90 || err != nil {
+		t.Errorf("Ceiling(85) = (%v,%v), want (%v,%v)", got.value, err, 90, nil)
+	}
+	if got, err := r.Ceiling(95); got != nil || err != ErrNotFound {
+		t.Errorf("Ceiling(95) = (%v,%v), want (%v,%v)", got, err, nil, ErrNotFound)
+	}
+}
+
 func TestRedBlackTreeDeleteMax(t *testing.T) {
 	r := NewRedBlackTree(cmpInts)
 	r.Insert(8)
