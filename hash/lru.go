@@ -3,7 +3,7 @@ package hash
 import "errors"
 
 var (
-	ErrNotFound = errors.New("not found")
+	ErrNotFound = errors.New("Not Found")
 )
 
 type element struct {
@@ -11,7 +11,7 @@ type element struct {
 	next  *element
 	hnext *element
 	key   int
-	value int
+	value any
 }
 
 type LRUHashTable struct {
@@ -22,7 +22,7 @@ type LRUHashTable struct {
 	capacity  int
 }
 
-func newElement(key int, value int) *element {
+func newElement(key int, value any) *element {
 	return &element{
 		key:   key,
 		value: value,
@@ -43,10 +43,10 @@ func NewLRUHashTable(size int, capacity int) *LRUHashTable {
 	}
 }
 
-func (h *LRUHashTable) Get(key int) (int, error) {
+func (h *LRUHashTable) Get(key int) (value any, err error) {
 	_, node := h.getNode(key)
 	if node == nil {
-		return 0, ErrNotFound
+		return value, ErrNotFound
 	}
 
 	h.moveToListTail(node)
@@ -54,7 +54,7 @@ func (h *LRUHashTable) Get(key int) (int, error) {
 	return node.value, nil
 }
 
-func (h *LRUHashTable) Add(key int, value int) {
+func (h *LRUHashTable) Add(key int, value any) {
 	i, node := h.getNode(key)
 	if node != nil {
 		node.value = value
