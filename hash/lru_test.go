@@ -5,8 +5,16 @@ import (
 	"testing"
 )
 
+func hashInts(key any) int {
+	return key.(int)
+}
+
+func cmpInts(a, b any) int {
+	return a.(int) - b.(int)
+}
+
 func TestNewLRUHashTable(t *testing.T) {
-	h := NewLRUHashTable(2, 4)
+	h := NewLRUHashTable(2, 4, hashInts, cmpInts)
 	if got, err := h.Get(1); err != ErrNotFound {
 		t.Errorf("Get(1) = (%v, %v), want (%v, %v)", got, err, 0, ErrNotFound)
 	}
@@ -16,7 +24,7 @@ func TestNewLRUHashTable(t *testing.T) {
 }
 
 func TestLRUHashTableAddOne(t *testing.T) {
-	h := NewLRUHashTable(2, 4)
+	h := NewLRUHashTable(2, 4, hashInts, cmpInts)
 	h.Add(1, 10)
 	if got, err := h.Get(1); got != 10 || err != nil {
 		t.Errorf("Get(1) = (%v, %v), want (%v, %v)", got, err, 10, nil)
@@ -40,7 +48,7 @@ func TestLRUHashTableAddOne(t *testing.T) {
 }
 
 func TestLRUHashTableAddTwo(t *testing.T) {
-	h := NewLRUHashTable(2, 4)
+	h := NewLRUHashTable(2, 4, hashInts, cmpInts)
 	h.Add(1, 10)
 	h.Add(2, 20)
 	if got, err := h.Get(1); got != 10 || err != nil {
@@ -76,7 +84,7 @@ func TestLRUHashTableAddTwo(t *testing.T) {
 }
 
 func TestLRUHashTableAddFour(t *testing.T) {
-	h := NewLRUHashTable(2, 4)
+	h := NewLRUHashTable(2, 4, hashInts, cmpInts)
 	h.Add(1, 10)
 	h.Add(2, 20)
 	h.Add(3, 30)
@@ -140,7 +148,7 @@ func TestLRUHashTableAddFour(t *testing.T) {
 }
 
 func TestLRU(t *testing.T) {
-	h := NewLRUHashTable(2, 4)
+	h := NewLRUHashTable(2, 4, hashInts, cmpInts)
 	h.Add(1, 10)
 	h.Add(2, 20)
 	h.Add(3, 30)

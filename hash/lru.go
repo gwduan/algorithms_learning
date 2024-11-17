@@ -6,11 +6,14 @@ var (
 	ErrNotFound = errors.New("Not Found")
 )
 
+type HashFunc func(any) int
+type CmpFunc func(any, any) int
+
 type element struct {
 	pre   *element
 	next  *element
 	hnext *element
-	key   int
+	key   any
 	value any
 }
 
@@ -20,16 +23,18 @@ type LRUHashTable struct {
 	list      *element
 	listSize  int
 	capacity  int
+	hs        HashFunc
+	cmp       CmpFunc
 }
 
-func newElement(key int, value any) *element {
+func newElement(key any, value any) *element {
 	return &element{
 		key:   key,
 		value: value,
 	}
 }
 
-func NewLRUHashTable(size int, capacity int) *LRUHashTable {
+func NewLRUHashTable(size int, capacity int, hs HashFunc, cmp CmpFunc) *LRUHashTable {
 	list := &element{}
 	list.next = list
 	list.pre = list
@@ -40,10 +45,12 @@ func NewLRUHashTable(size int, capacity int) *LRUHashTable {
 		list:      list,
 		listSize:  0,
 		capacity:  capacity,
+		hs:        hs,
+		cmp:       cmp,
 	}
 }
 
-func (h *LRUHashTable) Get(key int) (value any, err error) {
+func (h *LRUHashTable) Get(key any) (value any, err error) {
 	_, node := h.getNode(key)
 	if node == nil {
 		return value, ErrNotFound
@@ -54,7 +61,7 @@ func (h *LRUHashTable) Get(key int) (value any, err error) {
 	return node.value, nil
 }
 
-func (h *LRUHashTable) Add(key int, value any) {
+func (h *LRUHashTable) Add(key any, value any) {
 	i, node := h.getNode(key)
 	if node != nil {
 		node.value = value
@@ -74,9 +81,9 @@ func (h *LRUHashTable) Add(key int, value any) {
 	}
 }
 
-func (h *LRUHashTable) Remove(key int) error {
+func (h *LRUHashTable) Remove(key any) error {
 	for p := &h.slots[h.hash(key)]; p.hnext != nil; p = p.hnext {
-		if p.hnext.key == key {
+		if h.cmp(p.hnext.key, key) == 0 {
 			h.removeFromList(p.hnext)
 			p.hnext = p.hnext.hnext
 			h.listSize--
@@ -87,14 +94,14 @@ func (h *LRUHashTable) Remove(key int) error {
 	return ErrNotFound
 }
 
-func (h *LRUHashTable) hash(key int) int {
-	return key % h.slotsSize
+func (h *LRUHashTable) hash(key any) int {
+	return h.hs(key) % h.slotsSize
 }
 
-func (h *LRUHashTable) getNode(key int) (int, *element) {
+func (h *LRUHashTable) getNode(key any) (int, *element) {
 	i := h.hash(key)
 	for p := &h.slots[i]; p.hnext != nil; p = p.hnext {
-		if p.hnext.key == key {
+		if h.cmp(p.hnext.key, key) == 0 {
 			return i, p.hnext
 		}
 	}
