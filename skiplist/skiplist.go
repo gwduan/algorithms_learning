@@ -13,6 +13,8 @@ var (
 	ErrNotFound  = errors.New("Not Found")
 )
 
+type CmpFunc func(any, any) int
+
 type Element struct {
 	value    any
 	level    int
@@ -23,10 +25,9 @@ type SkipList struct {
 	head   *Element
 	level  int
 	length int
+	cmp    CmpFunc
 	mu     sync.RWMutex
 }
-
-type CmpFunc func(any, any) int
 
 func newElement(value any, level int) *Element {
 	return &Element{
@@ -40,11 +41,12 @@ func (e *Element) Value() any {
 	return e.value
 }
 
-func NewSkipList() *SkipList {
+func NewSkipList(cmp CmpFunc) *SkipList {
 	var zero any
 
 	return &SkipList{
 		head: newElement(zero, MAX_LEVEL),
+		cmp:  cmp,
 	}
 }
 
@@ -62,7 +64,7 @@ func (s *SkipList) Length() int {
 	return s.length
 }
 
-func (s *SkipList) Insert(value any, cmp CmpFunc) error {
+func (s *SkipList) Insert(value any) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -78,11 +80,11 @@ func (s *SkipList) Insert(value any, cmp CmpFunc) error {
 	preNodes := make([]*Element, newLevel, newLevel)
 	pre := s.head
 	for i := s.level - 1; i >= 0; i-- {
-		for pre.forwards[i] != nil && cmp(pre.forwards[i].value, value) < 0 {
+		for pre.forwards[i] != nil && s.cmp(pre.forwards[i].value, value) < 0 {
 			pre = pre.forwards[i]
 		}
 
-		if pre.forwards[i] != nil && cmp(pre.forwards[i].value, value) == 0 {
+		if pre.forwards[i] != nil && s.cmp(pre.forwards[i].value, value) == 0 {
 			if incLevel {
 				s.level--
 			}
@@ -104,18 +106,18 @@ func (s *SkipList) Insert(value any, cmp CmpFunc) error {
 	return nil
 }
 
-func (s *SkipList) Delete(value any, cmp CmpFunc) error {
+func (s *SkipList) Delete(value any) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	found := false
 	pre := s.head
 	for i := s.level - 1; i >= 0; i-- {
-		for pre.forwards[i] != nil && cmp(pre.forwards[i].value, value) < 0 {
+		for pre.forwards[i] != nil && s.cmp(pre.forwards[i].value, value) < 0 {
 			pre = pre.forwards[i]
 		}
 
-		if pre.forwards[i] != nil && cmp(pre.forwards[i].value, value) == 0 {
+		if pre.forwards[i] != nil && s.cmp(pre.forwards[i].value, value) == 0 {
 			found = true
 			e := pre.forwards[i]
 			pre.forwards[i] = e.forwards[i]
@@ -134,17 +136,17 @@ func (s *SkipList) Delete(value any, cmp CmpFunc) error {
 	return ErrNotFound
 }
 
-func (s *SkipList) Find(value any, cmp CmpFunc) (*Element, error) {
+func (s *SkipList) Find(value any) (*Element, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
 	pre := s.head
 	for i := s.level - 1; i >= 0; i-- {
-		for pre.forwards[i] != nil && cmp(pre.forwards[i].value, value) < 0 {
+		for pre.forwards[i] != nil && s.cmp(pre.forwards[i].value, value) < 0 {
 			pre = pre.forwards[i]
 		}
 
-		if pre.forwards[i] != nil && cmp(pre.forwards[i].value, value) == 0 {
+		if pre.forwards[i] != nil && s.cmp(pre.forwards[i].value, value) == 0 {
 			return pre.forwards[i], nil
 		}
 	}
@@ -168,7 +170,7 @@ func (s *SkipList) FindAll() ([]*Element, error) {
 	return results, nil
 }
 
-func (s *SkipList) FindBetween(begin any, end any, cmp CmpFunc) ([]*Element, error) {
+func (s *SkipList) FindBetween(begin any, end any) ([]*Element, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -178,13 +180,13 @@ func (s *SkipList) FindBetween(begin any, end any, cmp CmpFunc) ([]*Element, err
 
 	pre := s.head
 	for i := s.level - 1; i >= 0; i-- {
-		for pre.forwards[i] != nil && cmp(pre.forwards[i].value, begin) < 0 {
+		for pre.forwards[i] != nil && s.cmp(pre.forwards[i].value, begin) < 0 {
 			pre = pre.forwards[i]
 		}
 	}
 
 	results := make([]*Element, 0, 100)
-	for pre.forwards[0] != nil && cmp(pre.forwards[0].value, end) < 0 {
+	for pre.forwards[0] != nil && s.cmp(pre.forwards[0].value, end) < 0 {
 		results = append(results, pre.forwards[0])
 		pre = pre.forwards[0]
 	}
